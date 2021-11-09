@@ -127,9 +127,13 @@ my_data_no <- with(my_data,
 # boxplot to check for outliers in the differences
 ggboxplot(my_data_no, xlab = "data", ylab = "differences")
 
-# doesn't work - fix this (look at LAB06 for help)
+# TODO: fix this.
+# identify_outliers won't convert from double to integer due to loss of percision error.
+# my_data_split<-split(my_data, my_data$group)
+# identify_outliers(my_data_split$sitting, my_data_split$sitting$immersion)
+
 # identify_outliers(group_by(my_data, my_data$group), my_data$immersion)
-is_extreme(my_data$immersion)
+# is_extreme(my_data$immersion)
 
 ##############
 # QUESTION 2 #
