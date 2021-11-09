@@ -4,12 +4,25 @@
 # * Hao Tian Guan (100709845)
 # * Roderick "R.J." Montague (100701758)
 #
-# Date: 11/03/2021
+# Date: 11/09/2021
 #
 # Description: assignment 2 for human-computer interaction course.
 #
 # References:
 # - https://www.rdocumentation.org/packages/openxlsx/versions/4.2.4/topics/read.xlsx 
+
+# included libraries
+library(tidyverse)
+library(ggpubr)
+library(rstatix)
+library(dplyr)
+
+library(pastecs) # for lavene test
+library(readxl)
+
+# Exporting Information #
+auto_export <- FALSE # automatically export graph
+export_path <- "exports" # export path from working directory
 
 ##############
 # QUESTION 1 #
@@ -20,6 +33,84 @@ my_data<-data.frame(immersion =
                     group = gl(3,12, labels = c("sitting","standing","walking")))
 
 my_data
+
+# general information
+summary(my_data)
+levels(my_data$group)
+
+group_by(my_data, group) %>%
+  summarise(
+    count = n(),
+    mean = mean(immersion, na.rm = TRUE),
+    sd = sd(immersion, na.rm = TRUE)
+  )
+
+# Three groups of participants/ three configurations (sitting, standing, walking)
+# Only one configuration per person (no shared members) - results are independent.
+# Thus, One Way ANOVA is used (3 or more independent/unrelated groups)
+
+# - GRAPH - #
+# Box Plot
+ggboxplot(my_data, x = "group", y = "immersion",
+          color = "group", palette = c("RED", "GREEN", "BLUE"),
+          order = c("sitting", "standing", "walking"),
+          title = "Question 1 - User Study Box Plot (With Outliers)",
+          ylab = "Immersion", xlab = "Group")
+
+# if graph should be automatically exported.
+if(auto_export) {
+  ggsave(filename = "hci-asn02_q2_box_plot.png", path = export_path)
+  ggsave(filename = "hci-asn02_q2_box_plot.eps", path = export_path)
+  
+}
+
+# Bar Plot with Error Bars
+bar <- ggplot(my_data, aes(group, immersion))
+bar + stat_summary(fun = mean, geom = "bar") + 
+  stat_summary(fun.data = mean_sd,  geom = "errorbar", width = 0.2) + 
+  labs(title = "Question 1 - User Study Bar Chart (With Outliers)", x = "Group", y = "Immersion")
+
+# if graph should be automatically exported.
+if(auto_export) {
+  ggsave(filename = "hci-asn02_q2_bar_graph_with_error_bars.png", path = export_path)
+  ggsave(filename = "hci-asn02_q2_bar_graph_with_error_bars.eps", path = export_path)
+  
+}
+
+# -ASSUMPTIONS- #
+
+# Normality #
+if (!require(rstatix)) install.packages(rstatix)
+
+my_data %>%
+  group_by(group) %>%
+  shapiro_test(immersion)
+
+# TODO: draw graph to show normality
+
+# sitting returned 0.106
+# standing returned 0.909
+# walking returned 0.346
+# all are above 0.05, meaning they likely have normality.
+
+by(my_data$immersion, my_data$group, describe)
+
+###
+# Sample Independence #
+
+
+###
+# Variance Equality #
+if(!require(pastecs)) install.packages(pastecs)
+
+leveneTest(immersion ~ group, my_data)
+# lavene test returned 0.9657, which is above 0.05
+
+oneway.test(immersion ~ group, my_data)
+
+###
+# Outliers #
+# identify_outliers(my_data, diff)
 
 ##############
 # QUESTION 2 #
