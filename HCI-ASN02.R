@@ -18,6 +18,8 @@ library(rstatix)
 library(dplyr)
 
 library(pastecs) # for lavene test
+library(psych) # by() function describe
+library(car) # durbinWatsonTest
 library(readxl)
 
 # Exporting Information #
@@ -84,7 +86,7 @@ if (!require(rstatix)) install.packages(rstatix)
 
 my_data %>%
   group_by(group) %>%
-  shapiro_test(immersion)
+  shapiro_test(immersion) # get p-value for homogeneity check
 
 # TODO: draw graph to show normality
 
@@ -97,20 +99,37 @@ by(my_data$immersion, my_data$group, describe)
 
 ###
 # Sample Independence #
+if (!require(car)) install.packages(car)
 
+my_data_anova <- aov(immersion ~ group, my_data)
+durbinWatsonTest(my_data_anova)
+
+# returns p-value of 0.246
 
 ###
 # Variance Equality #
 if(!require(pastecs)) install.packages(pastecs)
 
 leveneTest(immersion ~ group, my_data)
-# lavene test returned 0.9657, which is above 0.05
+# lavene test returned p-value of 0.9657, which is above 0.05
 
 oneway.test(immersion ~ group, my_data)
 
 ###
 # Outliers #
-# identify_outliers(my_data, diff)
+
+# getting the differences
+my_data_no <- with(my_data,
+          immersion[group == "sitting"] - immersion[group == "standing"] - immersion[group == "walking"])
+
+# ("sitting","standing","walking"
+
+# boxplot to check for outliers in the differences
+ggboxplot(my_data_no, xlab = "data", ylab = "differences")
+
+# doesn't work - fix this (look at LAB06 for help)
+# identify_outliers(group_by(my_data, my_data$group), my_data$immersion)
+is_extreme(my_data$immersion)
 
 ##############
 # QUESTION 2 #
