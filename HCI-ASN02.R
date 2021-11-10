@@ -61,8 +61,8 @@ ggboxplot(my_data, x = "group", y = "immersion",
 
 # if graph should be automatically exported.
 if(auto_export) {
-  ggsave(filename = "hci-asn02_q2_box_plot.png", path = export_path)
-  ggsave(filename = "hci-asn02_q2_box_plot.eps", path = export_path)
+  ggsave(filename = "hci-asn02_q1_box_plot.png", path = export_path)
+  ggsave(filename = "hci-asn02_q1_box_plot.eps", path = export_path)
   
 }
 
@@ -74,8 +74,8 @@ bar + stat_summary(fun = mean, geom = "bar") +
 
 # if graph should be automatically exported.
 if(auto_export) {
-  ggsave(filename = "hci-asn02_q2_bar_graph_with_error_bars.png", path = export_path)
-  ggsave(filename = "hci-asn02_q2_bar_graph_with_error_bars.eps", path = export_path)
+  ggsave(filename = "hci-asn02_q1_bar_graph_with_error_bars.png", path = export_path)
+  ggsave(filename = "hci-asn02_q1_bar_graph_with_error_bars.eps", path = export_path)
   
 }
 
@@ -118,22 +118,48 @@ oneway.test(immersion ~ group, my_data)
 ###
 # Outliers #
 
+# ALL
+# This was taken out because it was not needed.
 # getting the differences
-my_data_no <- with(my_data,
-          immersion[group == "sitting"] - immersion[group == "standing"] - immersion[group == "walking"])
-
-# ("sitting","standing","walking"
+# my_data_no <- with(my_data,
+#          immersion[group == "sitting"] - immersion[group == "standing"] - immersion[group == "walking"])
 
 # boxplot to check for outliers in the differences
-ggboxplot(my_data_no, xlab = "data", ylab = "differences")
+# ggboxplot(my_data_no, xlab = "data", ylab = "differences")
 
-# TODO: fix this.
-# identify_outliers won't convert from double to integer due to loss of percision error.
-# my_data_split<-split(my_data, my_data$group)
-# identify_outliers(my_data_split$sitting, my_data_split$sitting$immersion)
+# INDIVIDUAL
+# sitting
+my_data_sit <- with(my_data, immersion[group == "sitting"])
+ggboxplot(my_data_sit, title = "Question 1- Box Plot - Sitting", xlab = "data", ylab = "differences")
 
-# identify_outliers(group_by(my_data, my_data$group), my_data$immersion)
-# is_extreme(my_data$immersion)
+# export graph
+if(auto_export) {
+  ggsave(filename = "hci-asn02_q1_box_plot_sit.png", path = export_path)
+  ggsave(filename = "hci-asn02_q1_box_plot_sit.eps", path = export_path)
+  
+}
+
+# standing
+my_data_stand <- with(my_data, immersion[group == "standing"])
+ggboxplot(my_data_stand, title = "Question 1 - Box Plot - Standing", xlab = "data", ylab = "differences")
+
+# export graph
+if(auto_export) {
+  ggsave(filename = "hci-asn02_q1_box_plot_stand.png", path = export_path)
+  ggsave(filename = "hci-asn02_q1_box_plot_stand.eps", path = export_path)
+  
+}
+
+# walking
+my_data_walk <- with(my_data, immersion[group == "walking"])
+ggboxplot(my_data_walk, title = "Question 1 - Box Plot - Walking", xlab = "data", ylab = "differences")
+
+# export graph
+if(auto_export) {
+  ggsave(filename = "hci-asn02_q1_box_plot_walk.png", path = export_path)
+  ggsave(filename = "hci-asn02_q1_box_plot_walk.eps", path = export_path)
+  
+}
 
 ##############
 # QUESTION 2 #
@@ -146,6 +172,15 @@ if (!require(readxl))
 SUS <- read_xlsx("imports/SUS.xlsx")
 
 # a) Assumptions Tests for ANOVA ...
+
+# NOTE:
+# - Run assumption tests for Mixed Anova
+# - There should be no problem with sphericity.
+# - If something is not right, you need to acknowledge it.
+# - check if the results are reliable, and how reliable they are.
+# - For the most part, you're going to ignore even if there's problems.
+# - With one way anova you can get rid of outliers, but when measuring the same person multiple times...
+# - You would get rid of the participant, which is costly, especially if there's few people.
 
 # b) Mixed ANOVA Test with ezANOVA
 if(!require(ez)) 
