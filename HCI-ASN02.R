@@ -4,7 +4,7 @@
 # * Hao Tian Guan (100709845)
 # * Roderick "R.J." Montague (100701758)
 #
-# Date: 11/09/2021
+# Date: 11/11/2021
 #
 # Description: assignment 2 for human-computer interaction course.
 #
@@ -16,8 +16,9 @@ library(tidyverse)
 library(ggpubr)
 library(rstatix)
 library(dplyr)
+library(ggplot2)
 
-library(pastecs) # for lavene test
+library(pastecs) # for levene test
 library(psych) # by() function describe
 library(car) # durbinWatsonTest
 library(readxl) # read in XLSL
@@ -89,12 +90,21 @@ my_data %>%
   group_by(group) %>%
   shapiro_test(immersion) # get p-value for homogeneity check
 
-# TODO: draw graph to show normality
-
 # sitting returned 0.106
 # standing returned 0.909
 # walking returned 0.346
 # all are above 0.05, meaning they likely have normality.
+
+# making a graph to show normality
+if (!require(ggplot2)) install.packages(ggplot2)
+
+ggqqplot(my_data, x = "immersion", facet.by = "group", title = "HCI - ASN02 - Question 1 - QQPlot for Normality")
+
+# export graph
+if(TRUE) {
+  ggsave(filename = "hci-asn02_q1_norm_qqplot.png", path = export_path)
+  ggsave(filename = "hci-asn02_q1_norm_qqplot.eps", path = export_path)
+}
 
 by(my_data$immersion, my_data$group, describe)
 
@@ -112,7 +122,7 @@ durbinWatsonTest(my_data_anova)
 if(!require(pastecs)) install.packages(pastecs)
 
 leveneTest(immersion ~ group, my_data)
-# lavene test returned p-value of 0.9657, which is above 0.05
+# levene test returned p-value of 0.9657, which is above 0.05
 
 oneway.test(immersion ~ group, my_data)
 
@@ -131,7 +141,8 @@ oneway.test(immersion ~ group, my_data)
 # INDIVIDUAL
 # sitting
 my_data_sit <- with(my_data, immersion[group == "sitting"])
-ggboxplot(my_data_sit, title = "Question 1- Box Plot - Sitting", xlab = "data", ylab = "differences", color = "RED")
+ggboxplot(my_data_sit, title = "HCI - ASN02 - Question 1 - Box Plot - Sitting", 
+          xlab = "data", ylab = "differences", color = "RED")
 
 # export graph
 if(auto_export) {
@@ -142,7 +153,8 @@ if(auto_export) {
 
 # standing
 my_data_stand <- with(my_data, immersion[group == "standing"])
-ggboxplot(my_data_stand, title = "Question 1 - Box Plot - Standing", xlab = "data", ylab = "differences", color = "GREEN")
+ggboxplot(my_data_stand, title = "HCI - ASN02 - Question 1 - Box Plot - Standing", 
+          xlab = "data", ylab = "differences", color = "GREEN")
 
 # export graph
 if(auto_export) {
@@ -153,7 +165,8 @@ if(auto_export) {
 
 # walking
 my_data_walk <- with(my_data, immersion[group == "walking"])
-ggboxplot(my_data_walk, title = "Question 1 - Box Plot - Walking", xlab = "data", ylab = "differences", color = "BLUE")
+ggboxplot(my_data_walk, title = "HCI - ASN02 - Question 1 - Box Plot - Walking", 
+          xlab = "data", ylab = "differences", color = "BLUE")
 
 # export graph
 if(auto_export) {
@@ -208,7 +221,7 @@ get_anova_table(res.aov)
 if(!require(rstatix)) install.packages("rstatix")
 if(!require(pastecs)) install.packages(pastecs)
 
-data("ToothGrowth")
+# data("ToothGrowth")
 
 # new
 # both error out, saying that the gorup is coerced to a factor.
@@ -223,6 +236,8 @@ SUS %>%
   levene_test(Score ~ Order)
 
 levene_test(group_by(SUS, Tool), Score ~ Order)
+
+#
 
 # TODO: figure out if these are how you're supposed to do it.
 # original
