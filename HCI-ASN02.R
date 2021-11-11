@@ -206,12 +206,31 @@ get_anova_table(res.aov)
 # Homogeneity of Variances #
 # TODO: FIX THIS.
 if(!require(rstatix)) install.packages("rstatix")
+if(!require(pastecs)) install.packages(pastecs)
+
+data("ToothGrowth")
+
+# new
+# both error out, saying that the gorup is coerced to a factor.
+SUS %>%
+  group_by(Order) %>%
+  levene_test(Score ~ Tool)
+
+levene_test(group_by(SUS, Order), Score ~ Tool)
 
 SUS %>%
-  group_by(Order, Tool) %>%
-  levene_test(Score ~ Partcipants)
+  group_by(Tool) %>%
+  levene_test(Score ~ Order)
 
-# levene_test(group_by(SUS, Tool), Score ~ Order, Tool)
+levene_test(group_by(SUS, Tool), Score ~ Order)
+
+# TODO: figure out if these are how you're supposed to do it.
+# original
+# SUS %>%
+#   group_by(Order, Tool) %>%
+#   levene_test(Score ~ Partcipants)
+
+# levene_test(group_by(SUS, Order, Tool), Score ~ Participants)
 
 # Homogeneity of Covariances #
 box_m(SUS["Score"], SUS$Tool)
