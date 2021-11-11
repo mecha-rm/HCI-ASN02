@@ -20,7 +20,8 @@ library(dplyr)
 library(pastecs) # for lavene test
 library(psych) # by() function describe
 library(car) # durbinWatsonTest
-library(readxl)
+library(readxl) # read in XLSL
+library(ez) # ezANOVA
 
 # Exporting Information #
 auto_export <- FALSE # automatically export graph
@@ -130,7 +131,7 @@ oneway.test(immersion ~ group, my_data)
 # INDIVIDUAL
 # sitting
 my_data_sit <- with(my_data, immersion[group == "sitting"])
-ggboxplot(my_data_sit, title = "Question 1- Box Plot - Sitting", xlab = "data", ylab = "differences")
+ggboxplot(my_data_sit, title = "Question 1- Box Plot - Sitting", xlab = "data", ylab = "differences", color = "RED")
 
 # export graph
 if(auto_export) {
@@ -141,7 +142,7 @@ if(auto_export) {
 
 # standing
 my_data_stand <- with(my_data, immersion[group == "standing"])
-ggboxplot(my_data_stand, title = "Question 1 - Box Plot - Standing", xlab = "data", ylab = "differences")
+ggboxplot(my_data_stand, title = "Question 1 - Box Plot - Standing", xlab = "data", ylab = "differences", color = "GREEN")
 
 # export graph
 if(auto_export) {
@@ -152,7 +153,7 @@ if(auto_export) {
 
 # walking
 my_data_walk <- with(my_data, immersion[group == "walking"])
-ggboxplot(my_data_walk, title = "Question 1 - Box Plot - Walking", xlab = "data", ylab = "differences")
+ggboxplot(my_data_walk, title = "Question 1 - Box Plot - Walking", xlab = "data", ylab = "differences", color = "BLUE")
 
 # export graph
 if(auto_export) {
@@ -166,14 +167,13 @@ if(auto_export) {
 ##############
 
 # installing the required package.
-if (!require(readxl))
-  install.packages(readxl)
+if (!require(readxl)) install.packages(readxl)
 
 SUS <- read_xlsx("imports/SUS.xlsx")
 
-# a) Assumptions Tests for ANOVA ...
+# a) Assumptions Tests for Mixed ANOVA (2 Way)
 
-# NOTE:
+# NOTE: (TODO: remove this for te final submission)
 # - Run assumption tests for Mixed Anova
 # - There should be no problem with sphericity.
 # - If something is not right, you need to acknowledge it.
@@ -182,14 +182,48 @@ SUS <- read_xlsx("imports/SUS.xlsx")
 # - With one way anova you can get rid of outliers, but when measuring the same person multiple times...
 # - You would get rid of the participant, which is costly, especially if there's few people.
 
+# Outliers - Checking for Significant Outliers #
+SUS %>%
+  group_by(Order, Tool) %>%
+  identify_outliers(Score)
+
+
+# Normality #
+SUS %>%
+  group_by(Order, Tool) %>%
+  shapiro_test(Score)
+
+# Assumption of Sphericity #
+# Order is the between subject, Tool is the within subject 
+res.aov <- anova_test(
+  data = SUS, dv = Score, wid = Partcipants,
+  between = Order, within = Tool
+)
+
+# print values
+get_anova_table(res.aov)
+
+# Homogeneity of Variances #
+# TODO: FIX THIS.
+if(!require(rstatix)) install.packages("rstatix")
+
+SUS %>%
+  group_by(Order, Tool) %>%
+  levene_test(Score ~ Partcipants)
+
+# levene_test(group_by(SUS, Tool), Score ~ Order, Tool)
+
+# Homogeneity of Covariances #
+box_m(SUS["Score"], SUS$Tool)
+
 # b) Mixed ANOVA Test with ezANOVA
 if(!require(ez)) 
   install.packages("ez")
-
-library(ez)
 
 M_AnovaModel <- ezANOVA(data = SUS, dv = .(Score), 
                         wid = .(Partcipants), within = .(Tool), between = .(Order),
                         detailed = T, type = 3)
 
 M_AnovaModel
+
+# C) Interaction Plot(s)
