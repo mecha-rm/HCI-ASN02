@@ -61,7 +61,7 @@ q1clrs <- c("RED", "GREEN", "BLUE")
 ggboxplot(my_data, x = "group", y = "immersion",
           color = "group", palette = q1clrs,
           order = c("sitting", "standing", "walking"),
-          title = "Question 1 - User Study Box Plot (With Outliers)",
+          title = "HCI - ASN02 - Question 1 - VR Tasks Study Box Plot (With Outliers)",
           ylab = "Immersion", xlab = "Group")
 
 # if graph should be automatically exported.
@@ -75,7 +75,7 @@ if(auto_export) {
 bar <- ggplot(my_data, aes(group, immersion))
 bar + stat_summary(fun = mean, geom = "bar") + 
   stat_summary(fun.data = mean_sd,  geom = "errorbar", width = 0.2) + 
-  labs(title = "Question 1 - User Study Bar Chart (With Outliers)", x = "Group", y = "Immersion")
+  labs(title = "HCI - ASN02 - Question 1 - VR Tasks Study Bar Chart (With Outliers)", x = "Group", y = "Immersion")
 
 # if graph should be automatically exported.
 if(auto_export) {
@@ -138,12 +138,13 @@ my_data_no <- with(my_data,
           immersion[group == "sitting"] - immersion[group == "standing"] - immersion[group == "walking"])
 
 # boxplot to check for outliers in the differences
-ggboxplot(my_data_no, xlab = "data", ylab = "differences")
+ggboxplot(my_data_no, xlab = "data", ylab = "differences", 
+          title = "HCI - ASN02 - Question 1 - Box Plot (No Outliers)")
 
 # export graph
 if(auto_export) {
-  ggsave(filename = "hci-asn02_q1_box_plot.png", path = export_path)
-  ggsave(filename = "hci-asn02_q1_box_plot.eps", path = export_path)
+  ggsave(filename = "hci-asn02_q1_box_plot_no_outliers.png", path = export_path)
+  ggsave(filename = "hci-asn02_q1_box_plot_no_outliers.eps", path = export_path)
 }
 
 
