@@ -4,7 +4,7 @@
 # * Hao Tian Guan (100709845)
 # * Roderick "R.J." Montague (100701758)
 #
-# Date: 11/11/2021
+# Date: 11/12/2021
 #
 # Description: assignment 2 for human-computer interaction course.
 #
@@ -26,7 +26,7 @@ library(ez) # ezANOVA
 library(stats) # post-hoc
 
 # Exporting Information #
-auto_export <- FALSE # automatically export graph
+auto_export <- FALSE # automatically export graphs
 export_path <- "exports" # export path from working directory
 
 ##############
@@ -55,9 +55,11 @@ group_by(my_data, group) %>%
 # Thus, One Way ANOVA is used (3 or more independent/unrelated groups)
 
 # - GRAPH - #
+q1clrs <- c("RED", "GREEN", "BLUE")
+
 # Box Plot
 ggboxplot(my_data, x = "group", y = "immersion",
-          color = "group", palette = c("RED", "GREEN", "BLUE"),
+          color = "group", palette = q1clrs,
           order = c("sitting", "standing", "walking"),
           title = "Question 1 - User Study Box Plot (With Outliers)",
           ylab = "Immersion", xlab = "Group")
@@ -101,9 +103,9 @@ if (!require(ggplot2)) install.packages(ggplot2)
 ggqqplot(my_data, x = "immersion", facet.by = "group", title = "HCI - ASN02 - Question 1 - QQPlot for Normality")
 
 # export graph
-if(TRUE) {
-  ggsave(filename = "hci-asn02_q1_norm_qqplot.png", path = export_path)
-  ggsave(filename = "hci-asn02_q1_norm_qqplot.eps", path = export_path)
+if(auto_export) {
+  ggsave(filename = "hci-asn02_q1_normality_qqplot.png", path = export_path)
+  ggsave(filename = "hci-asn02_q1_normality_qqplot.eps", path = export_path)
 }
 
 by(my_data$immersion, my_data$group, describe)
@@ -130,19 +132,26 @@ oneway.test(immersion ~ group, my_data)
 # Outliers #
 
 # ALL
-# This was taken out because it was not needed.
+# This isn't really needed. Looking at each individual group is better.
 # getting the differences
-# my_data_no <- with(my_data,
-#          immersion[group == "sitting"] - immersion[group == "standing"] - immersion[group == "walking"])
+my_data_no <- with(my_data,
+          immersion[group == "sitting"] - immersion[group == "standing"] - immersion[group == "walking"])
 
 # boxplot to check for outliers in the differences
-# ggboxplot(my_data_no, xlab = "data", ylab = "differences")
+ggboxplot(my_data_no, xlab = "data", ylab = "differences")
+
+# export graph
+if(auto_export) {
+  ggsave(filename = "hci-asn02_q1_box_plot.png", path = export_path)
+  ggsave(filename = "hci-asn02_q1_box_plot.eps", path = export_path)
+}
+
 
 # INDIVIDUAL
 # sitting
 my_data_sit <- with(my_data, immersion[group == "sitting"])
 ggboxplot(my_data_sit, title = "HCI - ASN02 - Question 1 - Box Plot - Sitting", 
-          xlab = "data", ylab = "differences", color = "RED")
+          xlab = "data", ylab = "differences", color = q1clrs[1])
 
 # export graph
 if(auto_export) {
@@ -153,7 +162,7 @@ if(auto_export) {
 # standing
 my_data_stand <- with(my_data, immersion[group == "standing"])
 ggboxplot(my_data_stand, title = "HCI - ASN02 - Question 1 - Box Plot - Standing", 
-          xlab = "data", ylab = "differences", color = "GREEN")
+          xlab = "data", ylab = "differences", color = q1clrs[2])
 
 # export graph
 if(auto_export) {
@@ -164,7 +173,7 @@ if(auto_export) {
 # walking
 my_data_walk <- with(my_data, immersion[group == "walking"])
 ggboxplot(my_data_walk, title = "HCI - ASN02 - Question 1 - Box Plot - Walking", 
-          xlab = "data", ylab = "differences", color = "BLUE")
+          xlab = "data", ylab = "differences", color = q1clrs[3])
 
 # export graph
 if(auto_export) {
@@ -185,13 +194,16 @@ SUS
 # a) Assumptions Tests for Mixed ANOVA (2 Way)
 
 # NOTE: (TODO: remove this for te final submission)
-# - Run assumption tests for Mixed Anova
+# Running the assumption tests for two-way Mixed ANOVA.
 # - There should be no problem with sphericity.
 # - If something is not right, you need to acknowledge it.
 # - check if the results are reliable, and how reliable they are.
 # - For the most part, you're going to ignore even if there's problems.
-# - With one way anova you can get rid of outliers, but when measuring the same person multiple times...
-# - You would get rid of the participant, which is costly, especially if there's few people.
+# - With one way ANOVA, you can get rid of outliers.
+# - However, in projects where you're measuring the same person multiple times, it isn't as easy.
+# - It's costly if you get rid of a participant in this scenario, especially if there's few people.
+
+q2clrs <- c("RED", "BLUE")
 
 # Outliers - Checking for Significant Outliers #
 SUS %>%
@@ -199,11 +211,13 @@ SUS %>%
   identify_outliers(Score)
 
 
+###
 # Normality #
 SUS %>%
   group_by(Order, Tool) %>%
   shapiro_test(Score)
 
+###
 # Assumption of Sphericity #
 # Order is the between subject, Tool is the within subject 
 res.aov <- anova_test(
@@ -214,58 +228,47 @@ res.aov <- anova_test(
 # print values
 get_anova_table(res.aov)
 
+###
 # Homogeneity of Variances #
-# TODO: FIX THIS.
 if(!require(rstatix)) install.packages("rstatix")
 if(!require(pastecs)) install.packages(pastecs)
 
-# data("ToothGrowth")
 
-# new
-# both error out, saying that the gorup is coerced to a factor.
+# individual
+# these provide factoring warnings, but they still produce results.
+# Order Grouping
 SUS %>%
   group_by(Order) %>%
   levene_test(Score ~ Tool)
 
-levene_test(group_by(SUS, Order), Score ~ Tool)
-
+# Tool Grouping
 SUS %>%
   group_by(Tool) %>%
   levene_test(Score ~ Order)
 
-levene_test(group_by(SUS, Tool), Score ~ Order)
+# order doesn't matter
+# levene_test(data = SUS, formula = Score~Tool*Order)
+levene_test(data = SUS, formula = Score~Order*Tool) # recommended order
 
-#
-
-# TODO: figure out if these are how you're supposed to do it.
-# original
-# SUS %>%
-#   group_by(Order, Tool) %>%
-#   levene_test(Score ~ Partcipants)
-
-# levene_test(group_by(SUS, Order, Tool), Score ~ Participants)
-
+# grouped
 # order doesn't matter
 # SUS %>%
-#   group_by(SUS, SUS$Tool) %>%
-#  levene_test(SUS$Score ~ SUS$Tool*SUS$Order)
+#  group_by(SUS, SUS$Order) %>%
+#  levene_test(SUS$Score ~ SUS$Order*SUS$Tool)
 
 SUS %>%
   group_by(SUS, SUS$Tool) %>%
   levene_test(SUS$Score ~ SUS$Order*SUS$Tool)
 
-# order does not matter for this it seems
-# levene_test(data = SUS, formula = Score~Tool*Order)
-levene_test(data = SUS, formula = Score~Order*Tool) # proper order
-
 # order doesn't matter
 # levene_test(data = group_by(SUS, SUS$Tool), formula = Score~Tool*Order)
-levene_test(data = group_by(SUS, SUS$Tool), formula = Score~Order*Tool) # proper order
+levene_test(data = group_by(SUS, SUS$Tool), formula = Score~Order*Tool) # recommended order
 
-
-
+###
 # Homogeneity of Covariances #
 box_m(SUS["Score"], SUS$Tool)
+
+
 
 # b) Mixed ANOVA Test with ezANOVA
 if(!require(ez)) install.packages("ez")
@@ -276,26 +279,40 @@ M_AnovaModel <- ezANOVA(data = SUS, dv = .(Score),
 
 M_AnovaModel
 
-# C) Interaction Plot(s)
+# c) Interaction Plot(s)
 if(!require(stats)) install.packages("stats")
 
-# pariwise tests
+# pairwise tests #
 pairwise.t.test(SUS$Score, interaction(SUS$Tool, SUS$Order), paired=T, p.adjust.method ="bonferroni")
 pairwise.t.test(SUS$Score, interaction(SUS$Order, SUS$Tool), paired=T, p.adjust.method ="bonferroni")
 
-# Interaction Plots (X = Order)
+# Interaction Plots #
+# interaction plots (X = Order)
 interaction.plot(x.factor = SUS$Order, trace.factor = SUS$Tool,
                  response = SUS$Score, fun = mean, type = "b", legend = TRUE, 
-                 xlab = "Order", ylab="Score", col = c("RED", "BLUE"), trace.label ="Tool")
+                 xlab = "Order", ylab="Score", col = q2clrs, trace.label ="Tool")
 
-# Interaction Plots (X = Tool)
+# interaction plot export (Order X Factor)
+if(auto_export) {
+  ggsave(filename = "hci-asn02_q2_interaction_plot_order_factor.png", path = export_path)
+  ggsave(filename = "hci-asn02_q2_interaction_plot_order_factor.eps", path = export_path)
+}
+
+# interaction plots (X = Tool)
 interaction.plot(x.factor = SUS$Tool, trace.factor = SUS$Order,
                  response = SUS$Score, fun = mean, type = "b", legend = TRUE, 
-                 xlab = "Tool", ylab="Score", col = c("RED", "BLUE"), trace.label ="Order")
+                 xlab = "Tool", ylab="Score", col = q2clrs, trace.label ="Order")
+
+# interaction plot - (Tool X Factor)
+if(auto_export) {
+  ggsave(filename = "hci-asn02_q2_interaction_plot_tool_factor.png", path = export_path)
+  ggsave(filename = "hci-asn02_q2_interaction_plot_tool_factor.eps", path = export_path)
+}
+
 
 # Line Plot/Main Plot
 ggp <- ggplot(SUS, aes(x=Order, y=Score, group =
-                      Tool, c("RED", "BLUE"))) +
+                      Tool, q2clrs)) +
   geom_errorbar(aes(ymin=Score-sd(Score),
                     ymax=Score+sd(Score)), width=.1,
                 position=position_dodge(0.05)) +
@@ -306,12 +323,18 @@ ggp <- ggplot(SUS, aes(x=Order, y=Score, group =
 
 # doesn't seem to do anything.
 ggp + theme_classic() +
-  scale_color_manual(values=c("RED","BLUE"))
+  scale_color_manual(values=q2clrs)
+
+# if graph should be automatically exported.
+if(auto_export) {
+  ggsave(filename = "hci-asn02_q2_line_plot.png", path = export_path)
+  ggsave(filename = "hci-asn02_q2_line_plot.eps", path = export_path)
+}
 
 
 # d) Pairwise Post-HOC Tests
 
-# pairwise post-hoc tests
+# pairwise post-hoc tests (both versions)
 pairwise.t.test(SUS$Score, SUS$Tool, paired=T, p.adjust.method ="bonferroni")
 pairwise.t.test(SUS$Score, SUS$Order, paired=T, p.adjust.method ="bonferroni")
 
