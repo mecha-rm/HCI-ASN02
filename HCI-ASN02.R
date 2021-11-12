@@ -23,6 +23,7 @@ library(psych) # by() function describe
 library(car) # durbinWatsonTest
 library(readxl) # read in XLSL
 library(ez) # ezANOVA
+library(stats) # post-hoc
 
 # Exporting Information #
 auto_export <- FALSE # automatically export graph
@@ -78,7 +79,6 @@ bar + stat_summary(fun = mean, geom = "bar") +
 if(auto_export) {
   ggsave(filename = "hci-asn02_q1_bar_graph_with_error_bars.png", path = export_path)
   ggsave(filename = "hci-asn02_q1_bar_graph_with_error_bars.eps", path = export_path)
-  
 }
 
 # -ASSUMPTIONS- #
@@ -148,7 +148,6 @@ ggboxplot(my_data_sit, title = "HCI - ASN02 - Question 1 - Box Plot - Sitting",
 if(auto_export) {
   ggsave(filename = "hci-asn02_q1_box_plot_sit.png", path = export_path)
   ggsave(filename = "hci-asn02_q1_box_plot_sit.eps", path = export_path)
-  
 }
 
 # standing
@@ -160,7 +159,6 @@ ggboxplot(my_data_stand, title = "HCI - ASN02 - Question 1 - Box Plot - Standing
 if(auto_export) {
   ggsave(filename = "hci-asn02_q1_box_plot_stand.png", path = export_path)
   ggsave(filename = "hci-asn02_q1_box_plot_stand.eps", path = export_path)
-  
 }
 
 # walking
@@ -172,7 +170,6 @@ ggboxplot(my_data_walk, title = "HCI - ASN02 - Question 1 - Box Plot - Walking",
 if(auto_export) {
   ggsave(filename = "hci-asn02_q1_box_plot_walk.png", path = export_path)
   ggsave(filename = "hci-asn02_q1_box_plot_walk.eps", path = export_path)
-  
 }
 
 ##############
@@ -183,6 +180,7 @@ if(auto_export) {
 if (!require(readxl)) install.packages(readxl)
 
 SUS <- read_xlsx("imports/SUS.xlsx")
+SUS
 
 # a) Assumptions Tests for Mixed ANOVA (2 Way)
 
@@ -247,12 +245,30 @@ levene_test(group_by(SUS, Tool), Score ~ Order)
 
 # levene_test(group_by(SUS, Order, Tool), Score ~ Participants)
 
+# order doesn't matter
+# SUS %>%
+#   group_by(SUS, SUS$Tool) %>%
+#  levene_test(SUS$Score ~ SUS$Tool*SUS$Order)
+
+SUS %>%
+  group_by(SUS, SUS$Tool) %>%
+  levene_test(SUS$Score ~ SUS$Order*SUS$Tool)
+
+# order does not matter for this it seems
+# levene_test(data = SUS, formula = Score~Tool*Order)
+levene_test(data = SUS, formula = Score~Order*Tool) # proper order
+
+# order doesn't matter
+# levene_test(data = group_by(SUS, SUS$Tool), formula = Score~Tool*Order)
+levene_test(data = group_by(SUS, SUS$Tool), formula = Score~Order*Tool) # proper order
+
+
+
 # Homogeneity of Covariances #
 box_m(SUS["Score"], SUS$Tool)
 
 # b) Mixed ANOVA Test with ezANOVA
-if(!require(ez)) 
-  install.packages("ez")
+if(!require(ez)) install.packages("ez")
 
 M_AnovaModel <- ezANOVA(data = SUS, dv = .(Score), 
                         wid = .(Partcipants), within = .(Tool), between = .(Order),
@@ -261,3 +277,42 @@ M_AnovaModel <- ezANOVA(data = SUS, dv = .(Score),
 M_AnovaModel
 
 # C) Interaction Plot(s)
+if(!require(stats)) install.packages("stats")
+
+# pariwise tests
+pairwise.t.test(SUS$Score, interaction(SUS$Tool, SUS$Order), paired=T, p.adjust.method ="bonferroni")
+pairwise.t.test(SUS$Score, interaction(SUS$Order, SUS$Tool), paired=T, p.adjust.method ="bonferroni")
+
+# Interaction Plots (X = Order)
+interaction.plot(x.factor = SUS$Order, trace.factor = SUS$Tool,
+                 response = SUS$Score, fun = mean, type = "b", legend = TRUE, 
+                 xlab = "Order", ylab="Score", col = c("RED", "BLUE"), trace.label ="Tool")
+
+# Interaction Plots (X = Tool)
+interaction.plot(x.factor = SUS$Tool, trace.factor = SUS$Order,
+                 response = SUS$Score, fun = mean, type = "b", legend = TRUE, 
+                 xlab = "Tool", ylab="Score", col = c("RED", "BLUE"), trace.label ="Order")
+
+# Line Plot/Main Plot
+ggp <- ggplot(SUS, aes(x=Order, y=Score, group =
+                      Tool, c("RED", "BLUE"))) +
+  geom_errorbar(aes(ymin=Score-sd(Score),
+                    ymax=Score+sd(Score)), width=.1,
+                position=position_dodge(0.05)) +
+  geom_line(aes(linetype=Tool)) +
+  geom_point(aes(shape=Tool)) +
+  labs(x="Order", y = "Score") +
+  theme_classic()
+
+# doesn't seem to do anything.
+ggp + theme_classic() +
+  scale_color_manual(values=c("RED","BLUE"))
+
+
+# d) Pairwise Post-HOC Tests
+
+# pairwise post-hoc tests
+pairwise.t.test(SUS$Score, SUS$Tool, paired=T, p.adjust.method ="bonferroni")
+pairwise.t.test(SUS$Score, SUS$Order, paired=T, p.adjust.method ="bonferroni")
+
+
