@@ -26,7 +26,7 @@ library(ez) # ezANOVA
 library(stats) # post-hoc
 
 # Exporting Information #
-auto_export <- FALSE # automatically export graphs
+auto_export <- TRUE # automatically export graphs
 export_path <- "exports" # export path from working directory
 
 ##############
@@ -294,9 +294,24 @@ interaction.plot(x.factor = SUS$Order, trace.factor = SUS$Tool,
 
 # interaction plot export (Order X Factor)
 if(auto_export) {
-  ggsave(filename = "hci-asn02_q2_interaction_plot_order_factor.png", path = export_path)
-  ggsave(filename = "hci-asn02_q2_interaction_plot_order_factor.eps", path = export_path)
+  # requires a different type of exporting since it doesn't use ggplot functions.
+  # the absolute path and relative path methods both work. This just shows the two ways of doing it.
+  
+  # png
+  f = paste(getwd(), export_path, "hci-asn02_q2_interaction_plot_order_factor.png", sep = "/")
+  dev.copy(png, f) # setting size manually due to a formatting issue with the automatic values.
+  dev.off()
+  
+  # eps (requires a different setup)
+  setEPS()
+  f = paste(export_path, "hci-asn02_q2_interaction_plot_order_factor.eps", sep = "/")
+  postscript(f)
+  interaction.plot(x.factor = SUS$Order, trace.factor = SUS$Tool,
+                   response = SUS$Score, fun = mean, type = "b", legend = TRUE, 
+                   xlab = "Order", ylab="Score", col = q2clrs, trace.label ="Tool")
+  dev.off()
 }
+
 
 # interaction plots (X = Tool)
 interaction.plot(x.factor = SUS$Tool, trace.factor = SUS$Order,
@@ -305,8 +320,22 @@ interaction.plot(x.factor = SUS$Tool, trace.factor = SUS$Order,
 
 # interaction plot - (Tool X Factor)
 if(auto_export) {
-  ggsave(filename = "hci-asn02_q2_interaction_plot_tool_factor.png", path = export_path)
-  ggsave(filename = "hci-asn02_q2_interaction_plot_tool_factor.eps", path = export_path)
+  # requires a different type of exporting since it doesn't use ggplot functions.
+  # the absolute path and relative path methods both work. This just shows the two ways of doing it.
+  
+  # png
+  f = paste(getwd(), export_path, "hci-asn02_q2_interaction_plot_tool_factor.png", sep = "/")
+  dev.copy(png, f) # setting size manually due to a formatting issue with the automatic values.
+  dev.off()
+  
+  # eps (requires a different setup)
+  setEPS()
+  f = paste(export_path, "hci-asn02_q2_interaction_plot_tool_factor.eps", sep = "/")
+  postscript(f)
+  interaction.plot(x.factor = SUS$Tool, trace.factor = SUS$Order,
+                   response = SUS$Score, fun = mean, type = "b", legend = TRUE, 
+                   xlab = "Tool", ylab="Score", col = q2clrs, trace.label ="Order")
+  dev.off()
 }
 
 
