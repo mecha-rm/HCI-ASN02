@@ -26,8 +26,10 @@ library(ez) # ezANOVA
 library(stats) # post-hoc
 
 # Exporting Information #
-auto_export <- TRUE # automatically export graphs
+auto_export <- FALSE # automatically export graphs
 export_path <- "exports" # export path from working directory
+
+# Explanations and  conclusions are in the report for this project. 
 
 ##############
 # QUESTION 1 #
@@ -182,6 +184,10 @@ if(auto_export) {
   ggsave(filename = "hci-asn02_q1_box_plot_walk.eps", path = export_path)
 }
 
+# One Way Anova Test
+my_data_owt <- oneway.test(immersion ~ group, data = my_data, var.equal = F)
+my_data_owt
+
 ##############
 # QUESTION 2 #
 ##############
@@ -217,6 +223,26 @@ SUS %>%
 SUS %>%
   group_by(Order, Tool) %>%
   shapiro_test(Score)
+
+# qqplot with focus on tool
+# this one isn't recommended since the grouping goes in the order of (Order, Tool)
+ggqqplot(SUS, x = "Score", facet.by = "Tool", 
+         title = "HCI - ASN02 - Question 2 a) - QQPlot for Normality (Tool Faceted)")
+
+if(auto_export) {
+  ggsave(filename = "hci-asn02_q2_normality_qqplot_tool_faceted.png", path = export_path)
+  ggsave(filename = "hci-asn02_q2_normality_qqplot_tool_faceted.eps", path = export_path)
+}
+
+# qqplot with focus on order (recommended)
+ggqqplot(SUS, x = "Score", facet.by = "Order", 
+         title = "HCI - ASN02 - Question 2 a) - QQPlot for Normality (Order Faceted)")
+
+if(auto_export) {
+  ggsave(filename = "hci-asn02_q1_normality_qqplot_order_faceted.png", path = export_path)
+  ggsave(filename = "hci-asn02_q1_normality_qqplot_order_facted.eps", path = export_path)
+}
+
 
 ###
 # Assumption of Sphericity #
@@ -285,15 +311,15 @@ if(!require(stats)) install.packages("stats")
 
 # pairwise tests #
 pairwise.t.test(SUS$Score, interaction(SUS$Tool, SUS$Order), paired=T, p.adjust.method ="bonferroni")
-pairwise.t.test(SUS$Score, interaction(SUS$Order, SUS$Tool), paired=T, p.adjust.method ="bonferroni")
+pairwise.t.test(SUS$Score, interaction(SUS$Order, SUS$Tool), paired=T, p.adjust.method ="bonferroni") # recommended
 
 # Interaction Plots #
-# interaction plots (X = Order)
+# interaction plots (X = Order) (recommended)
 interaction.plot(x.factor = SUS$Order, trace.factor = SUS$Tool,
                  response = SUS$Score, fun = mean, type = "b", legend = TRUE, 
                  xlab = "Order", ylab="Score", col = q2clrs, trace.label ="Tool")
 
-# interaction plot export (Order X Factor)
+# interaction plot export (Order Factor)
 if(auto_export) {
   # requires a different type of exporting since it doesn't use ggplot functions.
   # the absolute path and relative path methods both work. This just shows the two ways of doing it.
@@ -314,12 +340,12 @@ if(auto_export) {
 }
 
 
-# interaction plots (X = Tool)
+# interaction plots (Factor = Tool)
 interaction.plot(x.factor = SUS$Tool, trace.factor = SUS$Order,
                  response = SUS$Score, fun = mean, type = "b", legend = TRUE, 
                  xlab = "Tool", ylab="Score", col = q2clrs, trace.label ="Order")
 
-# interaction plot - (Tool X Factor)
+# interaction plot - (Tool Factor)
 if(auto_export) {
   # requires a different type of exporting since it doesn't use ggplot functions.
   # the absolute path and relative path methods both work. This just shows the two ways of doing it.
@@ -366,6 +392,6 @@ if(auto_export) {
 
 # pairwise post-hoc tests (both versions)
 pairwise.t.test(SUS$Score, SUS$Tool, paired=T, p.adjust.method ="bonferroni")
-pairwise.t.test(SUS$Score, SUS$Order, paired=T, p.adjust.method ="bonferroni")
+pairwise.t.test(SUS$Score, SUS$Order, paired=T, p.adjust.method ="bonferroni") # recommended
 
 
